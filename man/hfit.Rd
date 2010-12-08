@@ -44,7 +44,7 @@ normalise(values)
     either be specified by name or by index. Default is NULL, in which
     case all the markers are fitted (same as setting markers=h$markers) }
   \item{model}{ specify the type of model to be fit. Either 'additive',
-    where the contrinutions of each allele at the locus are assumed to
+    where the contributions of each allele at the locus are assumed to
     act additively, or 'full', in which a term for every possible
     combination of alleles is included. The default 'additive' mimics
     the behaviour of the original C HAPPY software.}
@@ -118,8 +118,8 @@ normalise(values)
 	p-values for each marker interval. The columns in the datatable
 	give the position in cM, the marker name (left-hand marker in
 	the interval), the original ANOVA logp, the permutation pval for
-	this logp, and the log permutation P-value. Bothe global (ie
-	region-wide) and pointwise pvalues are given. The Global pvalue for
+	this logp, and the log permutation P-value. Both the global (ie
+	region-wide) and pointwise pvalues are given. The global pvalue for
 	a marker interval is the fraction of times that the logP for the
 	interval (either additive or full, depending on the model
 	specified) is exceeded by the maximum logP in all intervals for
