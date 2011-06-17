@@ -50,28 +50,28 @@ SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP 
     error( "could not open data file" );
 
   if ( ! isString(allelesfile) || length(allelesfile) != 1 ) {
-    fclose(dfp); dfp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     error( "allelesfile is not a string");
   }
   afilename = CHAR(STRING_ELT(allelesfile,0));
 
   if ( ! (afp = fopen( afilename, "r" ) ) ) {
-    fclose(dfp); dfp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     error( "could not open alleles file" );
   }
 
   if ( isString(ancestryfile) && length(ancestryfile) == 1 ) {
     anfilename = CHAR(STRING_ELT(ancestryfile,0));
     if ( ! (anfp = fopen( anfilename, "r" ) ) ) {
-      fclose(afp); afp=NULL;
-      fclose(dfp); dfp=NULL;
+      if (afp) fclose(afp); afp=NULL;
+      if (dfp) fclose(dfp); dfp=NULL;
       error( "could not open ancestry file" );
     }
   }
 
   if ( ! isNumeric(generations) || length(generations) != 1 ) {
-    fclose(afp); afp=NULL;
-    fclose(dfp); dfp=NULL;
+    if (afp) fclose(afp); afp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     if (anfp) fclose(anfp); anfp=NULL;
     error( "generations is not numeric");
   }
@@ -79,24 +79,24 @@ SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP 
   gen = (int)g; 
 
   if ( ! isString(phase) || length(phase) != 1 ) {
-    fclose(afp); afp=NULL;
-    fclose(dfp); dfp=NULL;
+    if (afp) fclose(afp); afp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     if (anfp) fclose(anfp); anfp=NULL;
     error( "phase is not a string");
   }
   PhaseStr = CHAR(STRING_ELT(phase,0));
 
   if ( ! isString(file_format) || length(file_format) != 1 ) {
-    fclose(afp); afp=NULL;
-    fclose(dfp); dfp=NULL;
+    if (afp) fclose(afp); afp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     if (anfp) fclose(anfp); anfp=NULL;
     error( "file_format is not character(1)");
   }
   File_FormatStr = CHAR(STRING_ELT(file_format,0));
 
   if ( ! isString(missing_code) || length(missing_code) != 1 ) {
-    fclose(afp); afp=NULL;
-    fclose(dfp); dfp=NULL;
+    if (afp) fclose(afp); afp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     if (anfp) fclose(anfp); anfp=NULL;
     error( "missing_code is not character(1)");
   }
@@ -107,24 +107,24 @@ SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP 
   }
 
   if ( ! isNumeric(do_dp) || length(do_dp) != 1 ) {
-    fclose(afp); afp=NULL;
-    fclose(dfp); dfp=NULL;
+    if (afp) fclose(afp); afp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     if (anfp) fclose(anfp); anfp=NULL;
     error( "do_dp is not numeric(1)");
   }
   Do_dp = INTEGER(do_dp)[0];
 
   if ( ! isNumeric(haploid) || length(haploid) != 1 ) {
-    fclose(afp); afp=NULL;
-    fclose(dfp); dfp=NULL;
+    if (afp) fclose(afp); afp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     if (anfp) fclose(anfp); anfp=NULL;
     error( "haploid is not numeric(1)");
   }
   Haploid = INTEGER(haploid)[0]; 
 
   if ( ! isNumeric(min_dist) || length(min_dist) != 1 ) {
-    fclose(afp); afp=NULL;
-    fclose(dfp); dfp=NULL;
+    if (afp) fclose(afp); afp=NULL;
+    if (dfp) fclose(dfp); dfp=NULL;
     if (anfp) fclose(anfp); anfp=NULL;
     error( "min_dist is not numeric(1)");
   }
