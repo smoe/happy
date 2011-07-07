@@ -20,7 +20,7 @@ static int nqtldata = 0;
 int entrycmp( const void *a, const void *b );
 
 
-SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP file_format, SEXP missing_code, SEXP do_dp, SEXP min_dist, SEXP haploid, SEXP ancestryfile ) {
+SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP file_format, SEXP missing_code, SEXP do_dp, SEXP min_dist, SEXP haploid, SEXP ancestryfile, SEXP subset ) {
   QTL_DATA *q = NULL;
   ALLELES *a = NULL;
   FILE *dfp=NULL, *afp=NULL, *anfp=NULL;
@@ -49,50 +49,85 @@ SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP 
   if ( ! (dfp = fopen( dfilename, "r" ) ) )
     error( "could not open data file" );
 
-  if ( ! isString(allelesfile) || length(allelesfile) != 1 ) 
+  if ( ! isString(allelesfile) || length(allelesfile) != 1 ) {
+    fclose(dfp); dfp=NULL;
     error( "allelesfile is not a string");
+  }
   afilename = CHAR(STRING_ELT(allelesfile,0));
 
-  if ( ! (afp = fopen( afilename, "r" ) ) )
+  if ( ! (afp = fopen( afilename, "r" ) ) ) {
+    fclose(dfp); dfp=NULL;
     error( "could not open alleles file" );
+  }
 
   if ( isString(ancestryfile) && length(ancestryfile) == 1 ) {
     anfilename = CHAR(STRING_ELT(ancestryfile,0));
-    if ( ! (anfp = fopen( anfilename, "r" ) ) )
+    if ( ! (anfp = fopen( anfilename, "r" ) ) ) {
+      fclose(afp); afp=NULL;
+      fclose(dfp); dfp=NULL;
       error( "could not open ancestry file" );
+    }
   }
 
-  if ( ! isNumeric(generations) || length(generations) != 1 )
+  if ( ! isNumeric(generations) || length(generations) != 1 ) {
+    fclose(afp); afp=NULL;
+    fclose(dfp); dfp=NULL;
+    if (anfp) fclose(anfp); anfp=NULL;
     error( "generations is not numeric");
+  }
   g = REAL(generations)[0];
   gen = (int)g; 
 
-  if ( ! isString(phase) || length(phase) != 1 ) 
+  if ( ! isString(phase) || length(phase) != 1 ) {
+    fclose(afp); afp=NULL;
+    fclose(dfp); dfp=NULL;
+    if (anfp) fclose(anfp); anfp=NULL;
     error( "phase is not a string");
+  }
   PhaseStr = CHAR(STRING_ELT(phase,0));
 
-  if ( ! isString(file_format) || length(file_format) != 1 ) 
+  if ( ! isString(file_format) || length(file_format) != 1 ) {
+    fclose(afp); afp=NULL;
+    fclose(dfp); dfp=NULL;
+    if (anfp) fclose(anfp); anfp=NULL;
     error( "file_format is not character(1)");
+  }
   File_FormatStr = CHAR(STRING_ELT(file_format,0));
 
-  if ( ! isString(missing_code) || length(missing_code) != 1 )
+  if ( ! isString(missing_code) || length(missing_code) != 1 ) {
+    fclose(afp); afp=NULL;
+    fclose(dfp); dfp=NULL;
+    if (anfp) fclose(anfp); anfp=NULL;
     error( "missing_code is not character(1)");
+  }
   if ( strlen( CHAR(STRING_ELT(missing_code,0)) ) > 0 ) {
     MissingCode = (char*)CHAR(STRING_ELT(missing_code,0));
   } else {
     MissingCode = strdup(ND_ALLELE);
   }
 
-  if ( ! isNumeric(do_dp) || length(do_dp) != 1 )
+  if ( ! isNumeric(do_dp) || length(do_dp) != 1 ) {
+    fclose(afp); afp=NULL;
+    fclose(dfp); dfp=NULL;
+    if (anfp) fclose(anfp); anfp=NULL;
     error( "do_dp is not numeric(1)");
+  }
   Do_dp = INTEGER(do_dp)[0];
 
-  if ( ! isNumeric(haploid) || length(haploid) != 1 )
+  if ( ! isNumeric(haploid) || length(haploid) != 1 ) {
+    fclose(afp); afp=NULL;
+    fclose(dfp); dfp=NULL;
+    if (anfp) fclose(anfp); anfp=NULL;
     error( "haploid is not numeric(1)");
+  }
   Haploid = INTEGER(haploid)[0]; 
 
-  if ( ! isNumeric(min_dist) || length(min_dist) != 1 )
+  if ( ! isNumeric(min_dist) || length(min_dist) != 1 ) {
+    fclose(afp); afp=NULL;
+    fclose(dfp); dfp=NULL;
+    if (anfp) fclose(anfp); anfp=NULL;
     error( "min_dist is not numeric(1)");
+  }
   else if ( isNumeric(min_dist) )
     MinDist = (double)REAL(min_dist)[0];
 
@@ -100,6 +135,7 @@ SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP 
   Rprintf( "mindist: %g\n", MinDist );
   Rprintf( "datafile %s allelesfile %s gen %d\n", dfilename, afilename, gen );
   Rprintf( "genotype phase: %s\n", PhaseStr);
+
 
   if ( ! strcmp( File_FormatStr, "ped") ) 
     ped_format = 1;
@@ -121,7 +157,7 @@ SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP 
 
   a = input_allele_frequencies( afp, gen, MissingCode, MinDist, verbose );
   Rprintf( "a->markers %d\n", a->markers );
-  q = read_qtl_data( dfp, (char*)dfilename, a,  verbose, use_parents, ped_format, MissingCode );
+  q = read_qtl_data( dfp, (char*)dfilename, a,  verbose, use_parents, ped_format, MissingCode, subset);
   q->an = read_subject_ancestries( anfp, (char*)anfilename, verbose );
   q->phase_known = phaseKnown;
   q->haploid = Haploid;
@@ -130,6 +166,10 @@ SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP 
     check_and_apply_ancestry( q );
 
   Rprintf( "dfile %s afile %s gen %d\n", dfilename, afilename, gen );
+
+  fclose(afp); afp=NULL;
+  fclose(dfp); dfp=NULL;
+  if (anfp) fclose(anfp); anfp=NULL;
 
   
   if ( Do_dp ) {
@@ -291,7 +331,7 @@ QTL_FIT *allocate_qtl_fit( QTL_FIT *fit, int N, int strains ) {
 }
 
 
-QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a,  int verbose, int use_parents, int ped_format, char *missingCode ) {
+QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a,  int verbose, int use_parents, int ped_format, char *missingCode , SEXP subset) {
 
   QTL_DATA *q = (QTL_DATA*)calloc(1,sizeof(QTL_DATA));
   int max_N = 10000;
@@ -303,8 +343,23 @@ QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a,  int verbose, int use
   double NaN = nan("char-sequence");
   int *pcount;
   int nparents=0;
+
+  int subset_length = Rf_length(subset);
+  int* subset_logical = NULL;
+
+  if (0 < subset_length) {
+    Rprintf("I: Preparing logical vector for subset.\n");
+    if ( ! isLogical(subset)) {
+       error( "happy: current implementation expects a logical vector to define a subset of individuals.\n");
+    }
+    Rprintf( "I: Limiting analysis to %d individuals.\n", Rf_length(subset));
+    subset_logical = LOGICAL(subset) ;
+  } else {
+    Rprintf("I: Reading in whole file, not subsetting.\n");
+  }
+
   q->alleles = a;
-  q->filename = (char*)strdup(name);
+  strncpy(q->filename, name, MAX_LENGTH_FILENAME);
   q->N = 0;
   q->M = a->markers;
   q->S = a->strains;
@@ -313,7 +368,7 @@ QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a,  int verbose, int use
   q->name = (char**)calloc(max_N,sizeof(char*));
   q->family = (char**)calloc(max_N,sizeof(char*));
   q->use_parents = use_parents;
-  q->missingCode = (char*)strdup(missingCode);
+  strncpy(q->missingCode,missingCode,MAX_LENGTH_MISSINGCODE);
 
   if ( use_parents || ped_format ) {
     q->sex = (int*)calloc(max_N, sizeof(int));
@@ -323,11 +378,31 @@ QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a,  int verbose, int use
   }
   else
     Rprintf( "Reading phenotype and genotype data from data file %s\n", name );
+
+  size_t maxRead = 50000;
+  int lineNo=0;
   while ( skip_comments( fp, buffer ) != EOF ) {
+    lineNo++;
+    if (0 < subset_length) {
+      if (lineNo > subset_length) {
+        error("happy: read more entries than there are subset assignments: lineNo = %d > subset_length = %d\n",lineNo, subset_length);
+      }
+      else if (subset_logical[lineNo-1] != TRUE) {
+           if (strlen(buffer)>24) {
+                buffer[24]=0;
+                buffer[23]='.';
+                buffer[22]='.';
+                buffer[21]='.';
+           }
+           Rprintf("  Ignoring: %s\n",buffer);
+           continue;
+      }
+    }
     char *str1, *str2;
     m = 0;
     int ok = 0;
     if ( q->N >= max_N ) {
+      // extending memory
       max_N *= 2;
       q->observed = (double*)realloc(q->observed,max_N*sizeof(double));
       q->genos = (CHROM_PAIR*)realloc(q->genos,max_N*sizeof(CHROM_PAIR));
@@ -425,7 +500,7 @@ QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a,  int verbose, int use
       error("fatal HAPPY error");
     }
     q->N++;
-  }
+  } // while iterating over individuals
 
   if ( verbose>=2 ) {
     for(m=0;m<q->M;m++) {
@@ -836,9 +911,11 @@ ALLELES *input_allele_frequencies( FILE *fp, int generations, char *missingCode,
   */
 
 
+  /* long temporay strings to avoid memory errors by scanf */
   char line[10000];
-  char marker_name[256];
-  char allele_name[256];
+  char marker_name[10000];
+  char allele_name[10000];
+  char chromosome_name[10000];
   int markers=-1;
   int strains=-1;
   int line_no = 0;
@@ -846,6 +923,11 @@ ALLELES *input_allele_frequencies( FILE *fp, int generations, char *missingCode,
   ALLELES *A=NULL;
 
   skip_comments( fp, line ); line_no++;
+  if (strlen(line)>1000) {
+   Rprintf( "Found length of line number %d to be too long (> 1000). Check line separator.\n", line_no);
+   error( "Found length of line to be too long (> 1000). Check line separator.\n");
+  }
+
   if ( sscanf( line, "markers %d strains %d", &markers, &strains ) == 2 ) {
     A = (ALLELES*)calloc(1,sizeof(ALLELES));
     A->markers = markers;
@@ -868,13 +950,25 @@ ALLELES *input_allele_frequencies( FILE *fp, int generations, char *missingCode,
 	}
       }
     }
+
     for(m=0;m<markers;m++) {
       ALLELE_FREQ *af = &(A->af[m]);
       double total = 0.0;
       skip_comments( fp, line ); line_no++;
-      strcpy(af->chromosome,"unknown");
-      if ( (sscanf( line, "marker %s %d %s %lf", marker_name, &(af->alleles), af->chromosome, &(af->position) ) == 4 ) ||  ( sscanf( line, "marker %s %d %lf", marker_name, &(af->alleles), &(af->position) ) == 3 )) {
-	af->marker_name = (char*)strdup( marker_name );
+
+      if ( sscanf( line, "marker %s %d %s %lf", marker_name, &(af->alleles), chromosome_name, &(af->position) ) == 4 ) {
+	strncpy(af->chromosome,chromosome_name,MAX_LENGTH_CHROMOSOME);
+      }
+      else if ( sscanf( line, "marker %s %d %lf", marker_name, &(af->alleles), &(af->position) ) == 3 ) {
+	strncpy(af->chromosome,"unknown",MAX_LENGTH_CHROMOSOME);
+      }
+      else {
+	Rprintf( "marker Parse ERROR, line %d %s\n", line_no, line );
+	error("fatal HAPPY error");
+      }
+
+      strncpy(af->marker_name,marker_name,MAX_LENGTH_MARKER_NAME);
+
 	if ( verbose>=2 ) 
 	  Rprintf("marker %d %s %.3f %d\n", m, af->marker_name, af->position, af->alleles);
 	af->pr_AtoS = (double**)calloc(af->alleles,sizeof(double*)); 
@@ -887,11 +981,14 @@ ALLELES *input_allele_frequencies( FILE *fp, int generations, char *missingCode,
 	af->ND = -1; /* index of code for missing value */
 	for(a=0;a<af->alleles;a++) {
 	  skip_comments( fp, line ); line_no++;
-	  if ( sscanf( line, "allele %s", allele_name ) == 1 ) {
+	  if ( sscanf( line, "allele %s", allele_name ) != 1 ) {
+	    Rprintf( "allele Parse ERROR, line %d %s\n", line_no, line );
+	    error("fatal HAPPY error");
+          }
 	    char *str = (char*)strtok( line, "	 " );
 	    af->allele_name[a] = (char*)strdup(allele_name);
 	    str = (char*)strtok( NULL, " 	" );
-	    if ( ! strcmp(allele_name, missingCode) )
+	    if ( ! strncmp(allele_name, missingCode, MAX_LENGTH_MISSINGCODE) )
 	      af->ND = a;
 	    /*	    Rprintf( "missing code for %d %d\n", m, af->ND);*/
 	    total = 0.0;
@@ -912,18 +1009,8 @@ ALLELES *input_allele_frequencies( FILE *fp, int generations, char *missingCode,
 	    for(s=0;s<strains;s++) {
 	      af->pr_AtoS[a][s] /= total;
 	    }
-	  }
-	  else {
-	    Rprintf( "allele Parse ERROR, line %d %s\n", line_no, line );
-	    error("fatal HAPPY error");
-	  }
-	}
-      }
-      else {
-	Rprintf( "marker Parse ERROR, line %d %s\n", line_no, line );
-	error("fatal HAPPY error");
-      }
-    }
+	} // EoFor alleles
+    } // EoFor markers
 
     A->Pr_ss = (double*)calloc(markers,sizeof(double));
     A->Pr_st = (double*)calloc(markers,sizeof(double));
@@ -1968,5 +2055,3 @@ int entrycmp( const void *a, const void *b ) {
 
   return strcmp( (const char*)A->key, (const char*)B->key );
 }
-
-    

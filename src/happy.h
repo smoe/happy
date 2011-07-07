@@ -11,6 +11,11 @@ typedef enum {UNKNOWN, MALE, FEMALE } GENDER;
 
 #define ND_ALLELE "NA"
 
+#define MAX_LENGTH_CHROMOSOME	70
+#define MAX_LENGTH_MARKER_NAME	20
+#define MAX_LENGTH_MISSINGCODE	3
+#define MAX_LENGTH_FILENAME	3
+
 
 typedef struct {
   int markers;
@@ -20,12 +25,12 @@ typedef struct {
 
 typedef struct {
   int alleles;
-  char *marker_name;
+  char marker_name[MAX_LENGTH_MARKER_NAME+1];
   char **allele_name;
   double *allele_freq; /* observed frequency of alleles */
   double **pr_AtoS; /* prob of strain s | allele a */
   double entropy;
-  char chromosome[20];         /* the chromosome of the marker */
+  char chromosome[MAX_LENGTH_CHROMOSOME+1];         /* the chromosome of the marker */
   double position;             /* estimate of the distance of the QTL from the left-hand end */
   double ProbSame;             /* prob of an observable recomb between this and the next marker */
   double **prior;              /* array of probabilities that the pair of QTL states are in */
@@ -92,11 +97,11 @@ typedef struct {
 /* QTL_DATA  is a portmanteau struct that contains pretty much all the data */
 
 typedef struct {
-  char *filename;                  /* Name of the data-set */
+  char filename[MAX_LENGTH_FILENAME+1]; /* Name of the data-set */
   int N;                       /* Number of individuals */
   int M;                       /* Number of markers */
   int S;                       /* Number of strains */
-  char *missingCode;           /* missing allele code */
+  char missingCode[MAX_LENGTH_MISSINGCODE+1]; /* missing allele code */
   int haploid;                  /* boolean indicating if data are haploid (== inbred)*/
   ALLELES *alleles;            /* pointer to ALLELES struct containing the founder strain info */
   ANCESTRY *an;               /* pointer to ANCESTRY struct containing the subject-specific ancestral strain probabilities (can be null)*/
@@ -152,7 +157,7 @@ double fit_linear_additive_model( QTL_DATA *qtl, QTL_FIT *fit, int shuffles, int
 QTL_FIT *allocate_qtl_fit( QTL_FIT *fit, int N, int strains );
 void print_qtl_data ( QTL_DATA *q, QTL_FIT *fit, FILE *fp );
 void qtl_fit_cp( QTL_FIT *fit1, QTL_FIT *fit2, int N, int S );
-QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a, int verbose, int use_parents, int ped_format, char *missing );
+QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a, int verbose, int use_parents, int ped_format, char *missing, SEXP subset );
 void write_qtl_data( FILE *fp, QTL_DATA *q );
 int check_and_apply_ancestry(QTL_DATA *q );
 double ***summed_dp_matrix( QTL_DATA *qtl, int individual,  double *p1, double *p2, int direction );
@@ -173,7 +178,7 @@ int marker_index( const char *name, QTL_DATA *q, const int isIntervalModel );
 int genotype_difference( QTL_DATA *q, int i, int j );
 int pdump_prob_data( FILE *fp, int locus, QTL_DATA *q );
 double ** additive_design_matrix( QTL_DATA *q, int locus );
-SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP file_format, SEXP missing_code, SEXP do_dp, SEXP min_dist, SEXP haploid, SEXP anfilename );
+SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP file_format, SEXP missing_code, SEXP do_dp, SEXP min_dist, SEXP haploid, SEXP anfilename, SEXP subset );
 SEXP getListElement(SEXP list, char *str);
 QTL_DATA * validateParams ( SEXP handle, SEXP marker, int *locus, const int isIntervalModel);
 SEXP happyprobs ( SEXP handle, SEXP marker );
