@@ -1,0 +1,2 @@
+export(happy, happy.matrices, happy.save, hdesign, hnonrecomb, hprob, hprob2, h.sum.prob2, hgenotype, hfit, strain.effects, mfit, happyplot, twofit, condfit, mergedpositionmatrix, mergematrices, fastmergefit, mergeprepare, sdp, condmergefit, mergefit, mergelist, mergeplot, epistasis, epistasispair, matrixSquared, hfit.sequential, pfit, glmfit, normalise, gaussian.iterate, gaussian.init, gaussian.null, gaussian.loop, gaussian.fn, gaussian.gr, gfit, save.genome, the.chromosomes, save.happy, load.genome, load.markers)
+
