@@ -260,7 +260,7 @@ hgenotype <- function( h, marker=NULL, collapse=FALSE, sep="" ) {
                                         # Calculate the T-tests for comparing strain effects.
                                         # Called from hfit: only suited to the additive model at present
 
-strain.effects <- function( h, fit, family='gaussian' ){
+strain.effects <- function( h, fit, family='gaussian', file=NULL ){
 
   if ( class(fit) == "lm" ) {
     c <- coef(fit)
@@ -271,7 +271,7 @@ strain.effects <- function( h, fit, family='gaussian' ){
     corr <- cov * v
 
     cat('\nCorrelation Matrix:\n')
-    print (corr)
+    print(corr)
     cat('\n')
     nam <- names(c)
     nam2 <- c( 'Mean', h$strains ) # the true strain names
@@ -289,11 +289,10 @@ strain.effects <- function( h, fit, family='gaussian' ){
     df <- df.residual(fit)
     intercept <- "(Intercept)"
 
-    cat('\nStrain Main Effects, with standard errors:\n' )
-    cat(formatC( nam2, width=10, format='s' ), '\n')
-    cat(formatC( c, width=10, digits=4, format='f'), '\n' )
-    cat(formatC( se, width=10, digits=4, format='f'), '\n' )
-
+    cat(file=file,append=T,'\nStrain Main Effects, with standard errors:\n' )
+    cat(file=file,append=T,formatC( nam2, width=10, format='s' ), '\n')
+    cat(file=file,append=T,formatC( c, width=10, digits=4, format='f'), '\n' )
+    cat(file=file,append=T,formatC( se, width=10, digits=4, format='f'), '\n' )
 
     
     e <- matrix( nrow=len*(len+1)/2, ncol=4 )
@@ -345,8 +344,8 @@ strain.effects <- function( h, fit, family='gaussian' ){
     }
 
     k <- k-1
-    cat('\nTests of Strain Differences (note that differences may be hard to interpret when strains are indistinguishable)\n\n')
-    cat(
+    cat(file=file,append=T,'\nTests of Strain Differences (note that differences may be hard to interpret when strains are indistinguishable)\n\n')
+    cat(file=file,append=T,
         formatC('strain1',width=12,format='s'),
         formatC('strain2',width=12,format='s'),
         formatC('diff',width=10,format='s'),
@@ -356,7 +355,8 @@ strain.effects <- function( h, fit, family='gaussian' ){
         '\n')
     
     for( j in 1:k) {
-      cat(formatC( en[j,'strain1'], width=12,format='s'),
+      cat(file=file,append=T,
+          formatC( en[j,'strain1'], width=12,format='s'),
           formatC( en[j,'strain2'], width=12,format='s'),
           formatC(e[j,'diff'], width=10, digits=4, format='f'),
           formatC(e[j,'se'], width=10, digits=4, format='f'),
