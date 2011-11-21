@@ -15,7 +15,9 @@
 #include"cmp.h"
 #include"stats.h"
 
-static QTL_DATA *qtldata[100];
+#define MAXNQTLDATA 3000
+
+static QTL_DATA *qtldata[MAXNQTLDATA];
 static int nqtldata = 0;
 int entrycmp( const void *a, const void *b );
 
@@ -226,6 +228,9 @@ SEXP happy( SEXP datafile, SEXP allelesfile, SEXP generations, SEXP phase, SEXP 
   PROTECT(handle = allocVector(INTSXP,1));
   qtldata[nqtldata] = q;
   INTEGER(handle)[0] = nqtldata++;
+  if (MAXNQTLDATA == nqtldata) {
+    error("nqtldata reached MAXNQTLDATA.\n");
+  }
 
   
   /*  SET_VECTOR_ELT(ans,0,strains);
@@ -319,13 +324,28 @@ void qtl_fit_cp( QTL_FIT *fit1, QTL_FIT *fit2, int N, int S ) {
 
 QTL_FIT *allocate_qtl_fit( QTL_FIT *fit, int N, int strains ) {
 
-  if ( fit == NULL ) 
+  if ( fit == NULL ) {
     fit = (QTL_FIT*)calloc(1,sizeof(QTL_FIT));
+    if (NULL == fit) {
+      error("Run out of memory in allocate_qtl_fit (A).\n");
+    }
+  }
 
   fit->trait = (double*)calloc(strains,sizeof(double));
   fit->trait_error = (double*)calloc(strains,sizeof(double));
   fit->trait1 = (int*)calloc(N,sizeof(int));
   fit->trait2 = (int*)calloc(N,sizeof(int));
+
+  if (NULL == fit->trait
+   || NULL == fit->trait_error
+   || NULL == fit->trait1
+   || NULL == fit->trait2) {
+   	if (fit->trait) free(fit->trait); fit->trait=NULL;
+   	if (fit->trait_error) free(fit->trait_error); fit->trait_error=NULL;
+   	if (fit->trait1) free(fit->trait1); fit->trait1=NULL;
+   	if (fit->trait2) free(fit->trait2); fit->trait2=NULL;
+   	error("Run out of memory in allocate_qtl_fit (B).\n");
+  }
 
   return fit;
 }
@@ -334,10 +354,14 @@ QTL_FIT *allocate_qtl_fit( QTL_FIT *fit, int N, int strains ) {
 QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a,  int verbose, int use_parents, int ped_format, char *missingCode , SEXP subset) {
 
   QTL_DATA *q = (QTL_DATA*)calloc(1,sizeof(QTL_DATA));
+  if (NULL == q) error("Could not allocate q in 'read_qtl_data'.\n");
+
   int max_N = 10000;
   int m;
   int bufsize = 100+a->markers*20;
   char *buffer = (char*)calloc(bufsize,sizeof(char));
+  if (NULL == buffer) error("Could not allocate buffer in 'read_qtl_data'.\n");
+
   char **mother = NULL;
   char **father= NULL;
   double NaN = nan("char-sequence");
@@ -658,7 +682,7 @@ QTL_DATA *read_qtl_data( FILE *fp, char *name, ALLELES *a,  int verbose, int use
 
   fit_null_qtl_model( q );
 
-  free(buffer);
+  if (buffer) free(buffer);
   return q;
 
 }
