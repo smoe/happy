@@ -6,7 +6,7 @@
                                         # verbose controls the amount of output
                                         # return value is a table giving the logP values for each marker tested
 
-hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariatematrix=NULL, verbose=FALSE, phenotype=NULL, family='gaussian', permute=0, chromosome=NULL ) {
+hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariatematrix=NULL, verbose=FALSE, phenotype=NULL, family='gaussian', permute=0, chromosome=NULL, strain.effect.file=NULL ) {
 
   if ( class(h) == "happy.genome" ) {
     if ( !is.null( h[[model]] ) )
@@ -156,6 +156,7 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
 
       } else {
 
+
         if ( ! is.null(d<- hdesign( h, m, model='additive', mergematrix=mergematrix )) ) {
           if ( is.null(covariatematrix) ) {
             cfit <- glmfit( phenotype ~ 1 , family=family)
@@ -180,8 +181,11 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
             print( an )
             strain.effects( h, afit )
           }
-
-
+	  if (!is.null(strain.effect.file)) {
+	    cat("\nEffects for marker pair ",m,":\n",sep="")
+	    cat(file="strain.effect.file",append=T,"\nEffects for marker pair ",m,":\n",sep="")
+            strain.effects( h, afit, file=strain.effect.file )
+	  }
 
           if ( ! is.na(logP[2]) && logP[2] > maxp ) {
             maxp <- logP[2]
