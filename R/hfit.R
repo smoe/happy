@@ -156,6 +156,7 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
 
       } else {
 
+
         if ( ! is.null(d<- hdesign( h, m, model='additive', mergematrix=mergematrix )) ) {
           if ( is.null(covariatematrix) ) {
             cfit <- glmfit( phenotype ~ 1 , family=family)
@@ -181,6 +182,8 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
             strain.effects( h, afit )
           }
 	  if (!is.null(strain.effect.file)) {
+	    cat("\nEffects for marker pair ",m,":\n",sep="")
+	    cat(file="strain.effect.file",append=T,"\nEffects for marker pair ",m,":\n",sep="")
             strain.effects( h, afit, file=strain.effect.file )
 	  }
 
