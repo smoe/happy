@@ -98,6 +98,8 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
     return(hf0);
 
   } else {
+  
+    # Regular performance of hfit -- not handling permutations
 
     i <- 1
     maxp <- 0
@@ -105,7 +107,7 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
     maxSS <- NA
     
     for( m in markers ) {
-      if ( verbose ) cat( "\n\n****** ", i, "marker interval ",  m, "\n\n" )
+      if ( verbose ) cat( "\n\n****** ", i, "marker interval ",  m, ", ",model," model\n\n" )
       if ( model == 'partial' || model == 'full' ) {
         if ( ! is.null(full<- hdesign( h, m, model='full', mergematrix=mergematrix )) ) {
           additive <- hdesign( h, m, model='additive', mergematrix=mergematrix )
@@ -152,7 +154,9 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
           lp[i,7] <- an2[[4]][2]
           lp[i,8] <- an[[4]][3]
           i <- i+1
-        }
+        } else {
+	  cat("W: hfit: no design for marker ",m," and model ",model,".\n")
+	}
 
       } else {
 
@@ -166,6 +170,18 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
             d <- cbind( covariatematrix, d )
             afit <- glmfit( phenotype ~ d )
           }
+
+          an.afit<-anova(afit)
+          afit.variance <- an.afit$"Deviance" / an.afit$"Resid. Dev"[1]*100
+	  if (verbose) {
+	  	cat("an.afit: ")
+		print(an.afit)
+	  }
+
+	  if (!is.null(strain.effect.file)) {
+	  	cat(file=strain.effect.file,append=T,"\n\nDetails for marker",m,":\n",sep="")
+		cat("Percent variance: ",paste(afit.variance[-1],collapse=", "),"\n",sep="")
+	  }
 
           if ( family=="gaussian") {
             an <- anova( cfit, afit )
@@ -185,6 +201,8 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
 	    cat("\nEffects for marker pair ",m,":\n",sep="")
 	    cat(file="strain.effect.file",append=T,"\nEffects for marker pair ",m,":\n",sep="")
             strain.effects( h, afit, file=strain.effect.file )
+	  } else {
+	    if (verbose) cat("I: hfit:  not printing to strain effect file since not set.\n")
 	  }
 
           if ( ! is.na(logP[2]) && logP[2] > maxp ) {
@@ -199,7 +217,9 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
           lp[i,4] <- an[[4]][2]
 
           i <- i+1
-        }
+        } else {
+	  cat("W: hfit: no design for marker ",m," and model ",model,".\n")
+	}
       }
     }
     return(list( table=lp, model=model, chromosome=chromosome, family=family, test='hfit', offset=offset, width=width, maxp=maxp, maxm=maxm, maxSS=maxSS, permdata=NULL ))
