@@ -172,15 +172,22 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
           }
 
           an.afit<-anova(afit)
-          afit.variance <- an.afit$"Deviance" / an.afit$"Resid. Dev"[1]*100
 	  if (verbose) {
-	  	cat("an.afit: ")
-		print(an.afit)
+                cat("anova(afit):\n")
+                print(an.afit)
+		#str(an.afit)
+	  }
+          #an.afit.variance <- an.afit$"Deviance" / an.afit$"Resid. Dev"[1]*100
+          an.afit.variance <- an.afit[["Sum Sq"]][1]/sum(an.afit[["Sum Sq"]])*100
+	  if (verbose) {
+	  	cat("an.afit.variance: ")
+		print(an.afit.variance)
 	  }
 
 	  if (!is.null(strain.effect.file)) {
-	  	cat(file=strain.effect.file,append=T,"\n\nDetails for marker",m,":\n",sep="")
-		cat("Percent variance: ",paste(afit.variance[-1],collapse=", "),"\n",sep="")
+		cat(file=strain.effect.file,append=T,"\n\n------------------------------------------------\n")
+	  	cat(file=strain.effect.file,append=T,"\n\nDetails for marker ",m,":\n",sep="")
+		cat(file=strain.effect.file,append=T,"Percent variance: ",paste(an.afit.variance,collapse=", "),"\n",sep="")
 	  }
 
           if ( family=="gaussian") {
@@ -194,7 +201,7 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
           }
             
           if ( verbose ) {
-            print( an )
+            #print( an )
             strain.effects( h, afit )
           }
 	  if (!is.null(strain.effect.file)) {
