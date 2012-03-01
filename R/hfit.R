@@ -206,7 +206,7 @@ hfit <- function( h, markers=NULL, model='additive', mergematrix=NULL, covariate
           }
 	  if (!is.null(strain.effect.file)) {
 	    cat("\nEffects for marker pair ",m,":\n",sep="")
-	    cat(file="strain.effect.file",append=T,"\nEffects for marker pair ",m,":\n",sep="")
+	    cat(file=strain.effect.file,append=T,"\nEffects for marker pair ",m,":\n",sep="")
             strain.effects( h, afit, file=strain.effect.file )
 	  } else {
 	    if (verbose) cat("I: hfit:  not printing to strain effect file since not set.\n")
